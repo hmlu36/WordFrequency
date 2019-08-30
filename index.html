@@ -1,0 +1,95 @@
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+
+	<!-- textarea selection -->
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script type="text/javascript"
+		src="https://cdnjs.cloudflare.com/ajax/libs/jquery.selection/1.0.1/jquery.selection.min.js"></script>
+
+	<title>字數統計</title>
+	<style type="text/css">
+		@import url(https://fonts.googleapis.com/earlyaccess/notosanstc.css);
+
+		* {
+			font-family: 'Noto Sans TC';
+		}
+	</style>
+</head>
+
+<body>
+	<div id="app">
+		<div class="text-center">
+			<br />
+			<h4>字數統計</h4>
+			(只會顯示重複字，重複次數)
+			<br /><br />
+		</div>
+		<div class="form-group row">
+			<div class="col-6 offset-1">
+				<textarea cols="50" rows="20" v-model="inputData" @keyup="wordFrequency"></textarea>
+			</div>
+			<div class="col-3">
+				<span v-html="message"></span>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
+
+<script type="text/javascript">
+	new Vue({
+		el: '#app',
+		data: {
+			inputData: "",
+			message: ""
+		},
+		methods: {
+			wordFrequency() {
+				//console.log(this.inputData);
+
+				const pattern = /[\u4e00-\u9fa5]/g,
+					matchedWords = this.inputData.match(pattern);
+
+				let counts = matchedWords.reduce(function (freq, word) {
+					if (freq.hasOwnProperty(word)) {
+						++freq[word];
+					} else {
+						freq[word] = 1;
+					}
+					return freq;
+				}, {});
+
+				let sortable = [];
+				for (let x in counts) {
+					if (counts[x] > 1) {
+						sortable.push([x, counts[x]]);
+					}
+				}
+				sortable.sort(function (a, b) {
+					return b[1] - a[1];
+				});
+
+				this.message = "";
+				sortable.forEach((freq) => {
+					this.message += "<p>" + freq[0] + "  -   " + freq[1] + "</p>";
+				});
+				// console.log(sortable);
+			}
+		},
+		watch: {
+
+		},
+		created() {
+		},
+		mounted() {
+
+		}
+	});
+</script>
