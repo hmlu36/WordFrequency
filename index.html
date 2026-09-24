@@ -67,10 +67,21 @@
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
+			gap: .5rem;
 			padding: .6rem 1rem;
 			background: #343a40;
 			color: #fff;
 			font-size: .9rem;
+		}
+
+		.result-head .badge {
+			font-weight: 500;
+		}
+
+		.result-head .btn {
+			font-size: .8rem;
+			padding: .2rem .7rem;
+			white-space: nowrap;
 		}
 
 		.result-list {
@@ -78,55 +89,65 @@
 			overflow-y: auto;
 		}
 
-		.word-row {
-			display: flex;
-			align-items: center;
-			gap: .75rem;
-			padding: .5rem 1rem;
-			border-bottom: 1px solid #f1f3f5;
+		.result-list table {
+			margin-bottom: 0;
 		}
 
-		.word-row:last-child {
-			border-bottom: none;
+		.result-list thead th {
+			position: sticky;
+			top: 0;
+			z-index: 1;
+			background: #f1f3f5;
+			color: #6c757d;
+			font-size: .78rem;
+			font-weight: 700;
+			border-bottom: 2px solid #dee2e6;
+			white-space: nowrap;
 		}
 
-		.word-row:hover {
-			background: #f8f9fa;
+		.result-list tbody td {
+			vertical-align: middle;
+			border-color: #f1f3f5;
 		}
 
 		.rank {
-			width: 1.75rem;
+			width: 2rem;
 			font-size: .75rem;
 			color: #adb5bd;
-			text-align: right;
-			flex: none;
+			text-align: center;
 		}
 
 		.word-box {
-			width: 2.75rem;
-			height: 2.75rem;
-			flex: none;
+			width: 2.4rem;
+			height: 2.4rem;
 			display: flex;
 			align-items: center;
 			justify-content: center;
 			background: #e9ecef;
 			border-radius: .5rem;
-			font-size: 1.35rem;
+			font-size: 1.2rem;
 			font-weight: 700;
 			color: #212529;
 		}
 
-		.word-info {
-			flex: 1;
-			min-width: 0;
+		.count-cell {
+			font-weight: 700;
+			color: #1971c2;
+		}
+
+		.bar-wrap {
+			display: flex;
+			align-items: center;
+			gap: .5rem;
+			min-width: 90px;
 		}
 
 		.bar-track {
+			flex: 1;
 			height: .5rem;
 			background: #f1f3f5;
 			border-radius: .25rem;
 			overflow: hidden;
-			margin-top: .3rem;
 		}
 
 		.bar-fill {
@@ -136,17 +157,10 @@
 			transition: width .25s ease;
 		}
 
-		.count-badge {
-			flex: none;
-			min-width: 3rem;
-			text-align: center;
-			background: #e7f5ff;
-			color: #1971c2;
-			border: 1px solid #d0ebff;
-			border-radius: 1rem;
-			padding: .15rem .5rem;
-			font-weight: 700;
-			font-size: .9rem;
+		.pct {
+			width: 3.2rem;
+			text-align: right;
+			font-variant-numeric: tabular-nums;
 		}
 
 		.empty-tip {
@@ -194,22 +208,40 @@
 			<div class="col-12 col-lg-5">
 				<div class="result-panel">
 					<div class="result-head">
-						<span>統計結果</span>
-						<span class="badge text-dark">{{ results.length }} 個重複字</span>
+						<span>統計結果 <span class="badge text-dark">{{ results.length }} 個重複字</span></span>
+						<button type="button" class="btn btn-sm fw-bold"
+							:class="copyState === 'ok' ? 'btn-success' : (copyState === 'fail' ? 'btn-warning' : 'btn-outline-light')"
+							:disabled="!results.length" @click="copyResults">
+							{{ copyLabel }}
+						</button>
 					</div>
 
 					<div class="result-list" v-if="results.length">
-						<div class="word-row" v-for="(item, index) in results" :key="item.word">
-							<div class="rank">{{ index + 1 }}</div>
-							<div class="word-box">{{ item.word }}</div>
-							<div class="word-info">
-								<div class="small text-muted">出現 {{ item.count }} 次</div>
-								<div class="bar-track">
-									<div class="bar-fill" :style="{ width: barWidth(item.count) }"></div>
-								</div>
-							</div>
-							<div class="count-badge">x{{ item.count }}</div>
-						</div>
+						<table class="table table-hover align-middle">
+							<thead>
+								<tr>
+									<th scope="col" class="rank">#</th>
+									<th scope="col">字</th>
+									<th scope="col" class="text-end">次數</th>
+									<th scope="col">比例</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="(item, index) in results" :key="item.word">
+									<td class="rank">{{ index + 1 }}</td>
+									<td><div class="word-box">{{ item.word }}</div></td>
+									<td class="text-end count-cell">{{ item.count }}</td>
+									<td>
+										<div class="bar-wrap">
+											<div class="bar-track">
+												<div class="bar-fill" :style="{ width: barWidth(item.count) }"></div>
+											</div>
+											<span class="small text-muted pct">{{ pct(item.count) }}</span>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
 
 					<div class="empty-tip" v-else>
@@ -233,8 +265,17 @@
 					inputData: "",
 					results: [],
 					totalChars: 0,
-					uniqueChars: 0
+					uniqueChars: 0,
+					copyState: "",
+					copyTimer: null
 				};
+			},
+			computed: {
+				copyLabel() {
+					if (this.copyState === "ok") return "已複製";
+					if (this.copyState === "fail") return "複製失敗";
+					return "複製結果";
+				}
 			},
 			methods: {
 				wordFrequency() {
@@ -254,10 +295,59 @@
 						.map((word) => ({ word, count: counts[word] }))
 						.sort((a, b) => b.count - a.count);
 				},
+				buildResultText() {
+					const rows = [["名次", "字", "次數", "比例"]];
+					this.results.forEach((item, index) => {
+						rows.push([String(index + 1), item.word, String(item.count), this.pct(item.count)]);
+					});
+					return rows.map((row) => row.join("\t")).join("\r\n");
+				},
+				async copyResults() {
+					if (!this.results.length) return;
+
+					const text = this.buildResultText();
+					let ok = false;
+
+					try {
+						if (navigator.clipboard && window.isSecureContext) {
+							await navigator.clipboard.writeText(text);
+							ok = true;
+						}
+					} catch (e) {
+						ok = false;
+					}
+
+					if (!ok) {
+						const ta = document.createElement("textarea");
+						ta.value = text;
+						ta.setAttribute("readonly", "");
+						ta.style.position = "fixed";
+						ta.style.top = "-1000px";
+						document.body.appendChild(ta);
+						ta.select();
+						ta.setSelectionRange(0, text.length);
+						try {
+							ok = document.execCommand("copy");
+						} catch (e) {
+							ok = false;
+						}
+						document.body.removeChild(ta);
+					}
+
+					this.copyState = ok ? "ok" : "fail";
+					clearTimeout(this.copyTimer);
+					this.copyTimer = setTimeout(() => {
+						this.copyState = "";
+					}, 2000);
+				},
 				barWidth(count) {
 					if (!this.results.length) return "0%";
 					const max = this.results[0].count;
 					return Math.max(4, Math.round(count / max * 100)) + "%";
+				},
+				pct(count) {
+					if (!this.totalChars) return "0%";
+					return (count / this.totalChars * 100).toFixed(1) + "%";
 				}
 			}
 		}).mount('#app');
