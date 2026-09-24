@@ -1,95 +1,267 @@
-<html>
+<!DOCTYPE html>
+<html lang="zh-Hant">
 
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"></script>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
-
-	<!-- textarea selection -->
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-	<script type="text/javascript"
-		src="https://cdnjs.cloudflare.com/ajax/libs/jquery.selection/1.0.1/jquery.selection.min.js"></script>
-
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<title>字數統計</title>
-	<style type="text/css">
-		@import url(https://fonts.googleapis.com/earlyaccess/notosanstc.css);
 
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+
+	<style type="text/css">
 		* {
-			font-family: 'Noto Sans TC';
+			font-family: 'Noto Sans TC', sans-serif;
+		}
+
+		[v-cloak] {
+			display: none;
+		}
+
+		body {
+			background: #f5f7fa;
+		}
+
+		.stat-card {
+			background: #fff;
+			border: 1px solid #e9ecef;
+			border-radius: .5rem;
+			padding: .75rem 1rem;
+			text-align: center;
+		}
+
+		.stat-card .num {
+			font-size: 1.5rem;
+			font-weight: 700;
+			line-height: 1.2;
+		}
+
+		.stat-card .lbl {
+			font-size: .8rem;
+			color: #6c757d;
+		}
+
+		#inputArea {
+			width: 100%;
+			border: 1px solid #ced4da;
+			border-radius: .5rem;
+			padding: .75rem;
+			background: #fff;
+			resize: vertical;
+		}
+
+		#inputArea:focus {
+			outline: none;
+			border-color: #80bdff;
+			box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .25);
+		}
+
+		.result-panel {
+			background: #fff;
+			border: 1px solid #e9ecef;
+			border-radius: .5rem;
+			overflow: hidden;
+		}
+
+		.result-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: .6rem 1rem;
+			background: #343a40;
+			color: #fff;
+			font-size: .9rem;
+		}
+
+		.result-list {
+			max-height: 460px;
+			overflow-y: auto;
+		}
+
+		.word-row {
+			display: flex;
+			align-items: center;
+			gap: .75rem;
+			padding: .5rem 1rem;
+			border-bottom: 1px solid #f1f3f5;
+		}
+
+		.word-row:last-child {
+			border-bottom: none;
+		}
+
+		.word-row:hover {
+			background: #f8f9fa;
+		}
+
+		.rank {
+			width: 1.75rem;
+			font-size: .75rem;
+			color: #adb5bd;
+			text-align: right;
+			flex: none;
+		}
+
+		.word-box {
+			width: 2.75rem;
+			height: 2.75rem;
+			flex: none;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: #e9ecef;
+			border-radius: .5rem;
+			font-size: 1.35rem;
+			font-weight: 700;
+			color: #212529;
+		}
+
+		.word-info {
+			flex: 1;
+			min-width: 0;
+		}
+
+		.bar-track {
+			height: .5rem;
+			background: #f1f3f5;
+			border-radius: .25rem;
+			overflow: hidden;
+			margin-top: .3rem;
+		}
+
+		.bar-fill {
+			height: 100%;
+			background: linear-gradient(90deg, #4dabf7, #1c7ed6);
+			border-radius: .25rem;
+			transition: width .25s ease;
+		}
+
+		.count-badge {
+			flex: none;
+			min-width: 3rem;
+			text-align: center;
+			background: #e7f5ff;
+			color: #1971c2;
+			border: 1px solid #d0ebff;
+			border-radius: 1rem;
+			padding: .15rem .5rem;
+			font-weight: 700;
+			font-size: .9rem;
+		}
+
+		.empty-tip {
+			padding: 3rem 1rem;
+			text-align: center;
+			color: #adb5bd;
 		}
 	</style>
 </head>
 
 <body>
-	<div id="app">
-		<div class="text-center">
-			<br />
-			<h4>字數統計</h4>
-			(只會顯示重複字，重複次數)
-			<br /><br />
+	<div id="app" v-cloak class="container-fluid py-4" style="max-width: 1100px;">
+		<div class="text-center mb-4">
+			<h4 class="fw-bold mb-1">字數統計</h4>
+			<span class="text-muted small">只會列出出現「重複」的字，依出現次數由多至少排序</span>
 		</div>
-		<div class="form-group row">
-			<div class="col-6 offset-1">
-				<textarea cols="50" rows="20" v-model="inputData" @keyup="wordFrequency"></textarea>
+
+		<div class="row">
+			<div class="col-12 col-lg-7 mb-3 mb-lg-0">
+				<textarea id="inputArea" rows="16" v-model="inputData" @input="wordFrequency"
+					placeholder="請在此貼上欲統計的內容…"></textarea>
+
+				<div class="row g-2 mt-3">
+					<div class="col-4">
+						<div class="stat-card">
+							<div class="num text-primary">{{ totalChars }}</div>
+							<div class="lbl">總字數</div>
+						</div>
+					</div>
+					<div class="col-4">
+						<div class="stat-card">
+							<div class="num text-success">{{ uniqueChars }}</div>
+							<div class="lbl">不重複字數</div>
+						</div>
+					</div>
+					<div class="col-4">
+						<div class="stat-card">
+							<div class="num text-danger">{{ results.length }}</div>
+							<div class="lbl">重複字數</div>
+						</div>
+					</div>
+				</div>
 			</div>
-			<div class="col-3">
-				<span v-html="message"></span>
+
+			<div class="col-12 col-lg-5">
+				<div class="result-panel">
+					<div class="result-head">
+						<span>統計結果</span>
+						<span class="badge text-dark">{{ results.length }} 個重複字</span>
+					</div>
+
+					<div class="result-list" v-if="results.length">
+						<div class="word-row" v-for="(item, index) in results" :key="item.word">
+							<div class="rank">{{ index + 1 }}</div>
+							<div class="word-box">{{ item.word }}</div>
+							<div class="word-info">
+								<div class="small text-muted">出現 {{ item.count }} 次</div>
+								<div class="bar-track">
+									<div class="bar-fill" :style="{ width: barWidth(item.count) }"></div>
+								</div>
+							</div>
+							<div class="count-badge">x{{ item.count }}</div>
+						</div>
+					</div>
+
+					<div class="empty-tip" v-else>
+						尚未有重複的字<br />
+						<small>輸入內容後即時顯示結果</small>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+
+	<script type="text/javascript">
+		const { createApp } = Vue;
+
+		createApp({
+			data() {
+				return {
+					inputData: "",
+					results: [],
+					totalChars: 0,
+					uniqueChars: 0
+				};
+			},
+			methods: {
+				wordFrequency() {
+					const pattern = /[\u4e00-\u9fa5]/g;
+					const matchedWords = this.inputData.match(pattern) || [];
+
+					const counts = {};
+					matchedWords.forEach((word) => {
+						counts[word] = (counts[word] || 0) + 1;
+					});
+
+					this.totalChars = matchedWords.length;
+					this.uniqueChars = Object.keys(counts).length;
+
+					this.results = Object.keys(counts)
+						.filter((word) => counts[word] > 1)
+						.map((word) => ({ word, count: counts[word] }))
+						.sort((a, b) => b.count - a.count);
+				},
+				barWidth(count) {
+					if (!this.results.length) return "0%";
+					const max = this.results[0].count;
+					return Math.max(4, Math.round(count / max * 100)) + "%";
+				}
+			}
+		}).mount('#app');
+	</script>
 </body>
 
 </html>
-
-<script type="text/javascript">
-	new Vue({
-		el: '#app',
-		data: {
-			inputData: "",
-			message: ""
-		},
-		methods: {
-			wordFrequency() {
-				//console.log(this.inputData);
-
-				const pattern = /[\u4e00-\u9fa5]/g,
-					matchedWords = this.inputData.match(pattern);
-
-				let counts = matchedWords.reduce(function (freq, word) {
-					if (freq.hasOwnProperty(word)) {
-						++freq[word];
-					} else {
-						freq[word] = 1;
-					}
-					return freq;
-				}, {});
-
-				let sortable = [];
-				for (let x in counts) {
-					if (counts[x] > 1) {
-						sortable.push([x, counts[x]]);
-					}
-				}
-				sortable.sort(function (a, b) {
-					return b[1] - a[1];
-				});
-
-				this.message = "";
-				sortable.forEach((freq) => {
-					this.message += "<p>" + freq[0] + "  -   " + freq[1] + "</p>";
-				});
-				// console.log(sortable);
-			}
-		},
-		watch: {
-
-		},
-		created() {
-		},
-		mounted() {
-
-		}
-	});
-</script>
