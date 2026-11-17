@@ -4,12 +4,48 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<title>字數統計</title>
+	<title>字數統計與書法字體套用工具</title>
 
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
 
 	<style type="text/css">
+		/* 字體宣告：包含原始檔名與 URL 編碼相容路徑 */
+		@font-face {
+			font-family: '迷你繁王行';
+			src: url('迷你繁王行.ttf') format('truetype'),
+				 url('./%E8%BF%B7%E4%BD%A0%E7%B9%81%E7%8E%8B%E8%A1%8C.ttf') format('truetype');
+			font-display: swap;
+		}
+
+		@font-face {
+			font-family: '衡山毛筆草書';
+			src: url('衡山毛筆フォント草書KouzanBrushFontSousyo.ttf') format('truetype'),
+				 url('./%E8%A1%A1%E5%B1%B1%E6%AF%9B%E7%AD%86%E3%83%95%E3%82%A9%E3%83%B3%E3%83%88%E8%8D%89%E6%9B%B8KouzanBrushFontSousyo.ttf') format('truetype');
+			font-display: swap;
+		}
+
+		@font-face {
+			font-family: '橫山毛筆';
+			src: url('衡山毛筆フォント草書KouzanBrushFontSousyo.ttf') format('truetype'),
+				 url('./%E8%A1%A1%E5%B1%B1%E6%AF%9B%E7%AD%86%E3%83%95%E3%82%A9%E3%83%B3%E3%83%88%E8%8D%89%E6%9B%B8KouzanBrushFontSousyo.ttf') format('truetype');
+			font-display: swap;
+		}
+
+		@font-face {
+			font-family: '禹衛書法行書';
+			src: url('禹衛書法行書繁體.ttf') format('truetype'),
+				 url('./%E7%A6%B9%E8%A1%9B%E6%9B%B8%E6%B3%95%E8%A1%8C%E6%9B%B8%E7%B9%81%E9%AB%94.ttf') format('truetype');
+			font-display: swap;
+		}
+
+		@font-face {
+			font-family: '蒙納繁行書';
+			src: url('蒙納繁行書.otf') format('opentype'),
+				 url('./%E8%92%99%E7%B4%8D%E7%B9%81%E8%A1%8C%E6%9B%B8.otf') format('opentype');
+			font-display: swap;
+		}
+
 		* {
 			font-family: 'Noto Sans TC', sans-serif;
 		}
@@ -20,6 +56,148 @@
 
 		body {
 			background: #f5f7fa;
+			color: #212529;
+		}
+
+		.app-header {
+			margin-bottom: 1.5rem;
+		}
+
+		.editor-card {
+			background: #fff;
+			border: 1px solid #ced4da;
+			border-radius: .6rem;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+		}
+
+		.editor-toolbar {
+			background: #f8f9fa;
+			border-bottom: 1px solid #e9ecef;
+			padding: .65rem .85rem;
+		}
+
+		.editor-wrapper {
+			position: relative;
+			flex: 1;
+			background: #ffffff;
+			cursor: text;
+			min-height: 480px;
+		}
+
+		#inputArea {
+			outline: none;
+			white-space: pre-wrap;
+			word-break: break-word;
+			letter-spacing: 0.05em;
+			padding: 1.25rem;
+			background: #ffffff;
+			box-sizing: border-box !important;
+			width: 100% !important;
+			min-width: 100% !important;
+		}
+
+		/* 直式書寫（右至左）樣式：確保填滿容器並支援水平滑動 */
+		#inputArea.writing-vertical {
+			writing-mode: vertical-rl !important;
+			text-orientation: upright !important;
+			width: 100% !important;
+			min-width: 100% !important;
+			height: 480px !important;
+			min-height: 480px !important;
+			max-height: 580px !important;
+			overflow-x: auto !important;
+			overflow-y: hidden !important;
+			scroll-behavior: smooth;
+		}
+
+		/* 橫式書寫樣式 */
+		#inputArea.writing-horizontal {
+			writing-mode: horizontal-tb !important;
+			width: 100% !important;
+			min-height: 440px !important;
+			max-height: 580px !important;
+			overflow-y: auto !important;
+			overflow-x: hidden !important;
+		}
+
+		.editor-placeholder {
+			position: absolute;
+			color: #adb5bd;
+			pointer-events: none;
+			user-select: none;
+			line-height: 1.7;
+			font-family: 'Noto Sans TC', sans-serif !important;
+		}
+
+		.editor-placeholder.is-vertical {
+			writing-mode: vertical-rl;
+			text-orientation: upright;
+			top: 1.25rem;
+			right: 1.25rem;
+			left: auto;
+			height: 420px;
+			line-height: 1.8;
+		}
+
+		.editor-placeholder.is-horizontal {
+			top: 1.25rem;
+			left: 1.25rem;
+			right: 1.25rem;
+		}
+
+		.custom-font-span {
+			display: inline;
+		}
+
+		/* 浮動圈選快捷工具列 */
+		.floating-font-bar {
+			position: absolute;
+			transform: translateX(-50%);
+			z-index: 1050;
+			background: #212529;
+			color: #fff;
+			border-radius: .5rem;
+			padding: .4rem .6rem;
+			box-shadow: 0 .5rem 1.4rem rgba(0, 0, 0, .3);
+			display: flex;
+			align-items: center;
+			gap: .35rem;
+			animation: floatIn .12s ease-out;
+			white-space: nowrap;
+		}
+
+		@keyframes floatIn {
+			from {
+				opacity: 0;
+				transform: translate(-50%, 6px);
+			}
+			to {
+				opacity: 1;
+				transform: translate(-50%, 0);
+			}
+		}
+
+		.floating-font-bar::after {
+			content: '';
+			position: absolute;
+			bottom: -6px;
+			left: 50%;
+			transform: translateX(-50%);
+			border-width: 6px 6px 0;
+			border-style: solid;
+			border-color: #212529 transparent;
+			display: block;
+			width: 0;
+		}
+
+		.floating-font-bar.flip-below::after {
+			bottom: auto;
+			top: -6px;
+			border-width: 0 6px 6px;
+			border-color: transparent transparent #212529;
 		}
 
 		.stat-card {
@@ -41,26 +219,12 @@
 			color: #6c757d;
 		}
 
-		#inputArea {
-			width: 100%;
-			border: 1px solid #ced4da;
-			border-radius: .5rem;
-			padding: .75rem;
-			background: #fff;
-			resize: vertical;
-		}
-
-		#inputArea:focus {
-			outline: none;
-			border-color: #80bdff;
-			box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .25);
-		}
-
 		.result-panel {
 			background: #fff;
 			border: 1px solid #e9ecef;
-			border-radius: .5rem;
+			border-radius: .6rem;
 			overflow: hidden;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
 		}
 
 		.result-head {
@@ -68,7 +232,7 @@
 			align-items: center;
 			justify-content: space-between;
 			gap: .5rem;
-			padding: .6rem 1rem;
+			padding: .65rem 1rem;
 			background: #343a40;
 			color: #fff;
 			font-size: .9rem;
@@ -85,7 +249,7 @@
 		}
 
 		.result-list {
-			max-height: 460px;
+			max-height: 520px;
 			overflow-y: auto;
 		}
 
@@ -118,16 +282,22 @@
 		}
 
 		.word-box {
-			width: 2.4rem;
-			height: 2.4rem;
+			width: 2.8rem;
+			height: 2.8rem;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			background: #e9ecef;
+			background: #f8f9fa;
+			border: 1px solid #e9ecef;
 			border-radius: .5rem;
-			font-size: 1.2rem;
-			font-weight: 700;
+			font-size: 1.5rem;
 			color: #212529;
+			transition: transform .15s ease, background-color .15s ease;
+		}
+
+		.word-box:hover {
+			background: #e9ecef;
+			transform: scale(1.08);
 		}
 
 		.count-cell {
@@ -164,30 +334,320 @@
 		}
 
 		.empty-tip {
-			padding: 3rem 1rem;
+			padding: 4rem 1rem;
 			text-align: center;
 			color: #adb5bd;
+		}
+
+		.font-btn-preview {
+			font-size: .95rem;
+			padding: .2rem .55rem;
+		}
+
+		/* 匯出 PDF 遮罩狀態 */
+		.export-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: rgba(0, 0, 0, 0.55);
+			z-index: 3000;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			color: #ffffff;
+			backdrop-filter: blur(3px);
 		}
 	</style>
 </head>
 
 <body>
-	<div id="app" v-cloak class="container-fluid py-4" style="max-width: 1100px;">
-		<div class="text-center mb-4">
-			<h4 class="fw-bold mb-1">字數統計</h4>
-			<span class="text-muted small">只會列出出現「重複」的字，依出現次數由多至少排序</span>
+	<div id="app" v-cloak class="container-fluid py-4" style="max-width: 1240px;">
+		<!-- 標題說明區 -->
+		<div class="text-center app-header">
+			<div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+				<h4 class="fw-bold mb-0">字數統計與書法字體套用</h4>
+			</div>
+			<span class="text-muted small">
+				支援<strong>直式書寫（右至左）</strong>與<strong>前後行距緊密排版</strong>；預設以「迷你繁王行」為主，缺字自動回退「衡山毛筆」，並支援直接下載 PDF 檔案。
+			</span>
 		</div>
 
 		<div class="row">
-			<div class="col-12 col-lg-7 mb-3 mb-lg-0">
-				<textarea id="inputArea" rows="16" v-model="inputData" @input="wordFrequency"
-					placeholder="請在此貼上欲統計的內容…"></textarea>
+			<!-- 左側：編輯器與工具列 -->
+			<div class="col-12 col-lg-7 mb-4 mb-lg-0">
+				<div class="editor-card">
+					<!-- 固定工具列：全篇設定與操作 -->
+					<div class="editor-toolbar">
+						<!-- 第一列：字體、直式/橫式、行距、字級 -->
+						<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+							<!-- 全篇底層預設字體 -->
+							<div class="d-flex align-items-center gap-2">
+								<span class="small text-muted fw-bold text-nowrap">全篇字體：</span>
+								<select v-model="baseFontId" class="form-select form-select-sm" style="width: auto; min-width: 210px;">
+									<option v-for="font in fonts" :key="font.id" :value="font.id">
+										{{ font.name }}
+									</option>
+								</select>
+							</div>
 
+							<!-- 直式/橫式切換與行距控制 -->
+							<div class="d-flex align-items-center flex-wrap gap-2">
+								<!-- 排版方向切換 -->
+								<div class="btn-group btn-group-sm" role="group">
+									<button
+										type="button"
+										class="btn fw-bold"
+										:class="isVertical ? 'btn-primary' : 'btn-outline-secondary'"
+										@click="isVertical = true"
+										title="切換為傳統直式書寫（由右至左）"
+									>
+										🎋 直式(右至左)
+									</button>
+									<button
+										type="button"
+										class="btn fw-bold"
+										:class="!isVertical ? 'btn-primary' : 'btn-outline-secondary'"
+										@click="isVertical = false"
+										title="切換為現代橫式書寫（由左至右）"
+									>
+										橫式
+									</button>
+								</div>
+
+								<!-- 行距緊密度調整 -->
+								<div class="d-flex align-items-center gap-1">
+									<span class="small text-muted fw-bold text-nowrap" title="前後行之間的距離">行距：</span>
+									<div class="btn-group btn-group-sm">
+										<button
+											type="button"
+											class="btn"
+											:class="lineHeight === 1.2 ? 'btn-dark fw-bold' : 'btn-outline-secondary'"
+											@click="lineHeight = 1.2"
+											title="緊密集中的行距（最適合書法直式排版）"
+										>
+											緊密
+										</button>
+										<button
+											type="button"
+											class="btn"
+											:class="lineHeight === 1.45 ? 'btn-dark fw-bold' : 'btn-outline-secondary'"
+											@click="lineHeight = 1.45"
+											title="標準適中的行距"
+										>
+											適中
+										</button>
+										<button
+											type="button"
+											class="btn"
+											:class="lineHeight === 1.75 ? 'btn-dark fw-bold' : 'btn-outline-secondary'"
+											@click="lineHeight = 1.75"
+											title="寬鬆舒展的行距"
+										>
+											寬鬆
+										</button>
+									</div>
+								</div>
+
+								<!-- 字級縮放 -->
+								<div class="btn-group btn-group-sm">
+									<button type="button" class="btn btn-outline-secondary" @click="changeFontSize(-2)" title="縮小字體">A-</button>
+									<span class="btn btn-outline-secondary disabled fw-bold" style="min-width: 3.2rem;">{{ fontSize }}px</span>
+									<button type="button" class="btn btn-outline-secondary" @click="changeFontSize(2)" title="放大字體">A+</button>
+								</div>
+							</div>
+						</div>
+
+						<!-- 第二列：輔助動作（範例、貼上、複製、清空、匯出PDF） -->
+						<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-2">
+							<div class="small text-muted">
+								<span v-if="isVertical" class="badge bg-secondary-subtle text-secondary-emphasis border">
+									直排模式：文字由右向左直行排列
+								</span>
+								<span v-else class="badge bg-secondary-subtle text-secondary-emphasis border">
+									橫排模式：文字由左向右橫行排列
+								</span>
+							</div>
+
+							<div class="d-flex align-items-center gap-1">
+								<button type="button" class="btn btn-sm btn-outline-primary" @click="loadSampleText" title="載入蘭亭集序書法範例">
+									範例
+								</button>
+								<!-- 專屬貼上按鈕 -->
+								<button type="button" class="btn btn-sm btn-outline-success fw-bold" @click="pasteFromClipboard" title="從剪貼簿貼上文字內容（亦可直接按 Ctrl+V）">
+									📋 貼上
+								</button>
+								<button type="button" class="btn btn-sm btn-outline-secondary" @click="copyPlainText" title="複製編輯區純文字">
+									複製文字
+								</button>
+								<button type="button" class="btn btn-sm btn-outline-danger" @click="clearEditor" title="清空所有內容">
+									清空
+								</button>
+
+								<!-- 匯出 PDF 下拉選單（直接下載，非列印） -->
+								<div class="dropdown d-inline-block">
+									<button class="btn btn-sm btn-success dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown" :disabled="isExporting">
+										<span v-if="isExporting" class="spinner-border spinner-border-sm me-1" role="status"></span>
+										<span v-else>📄 </span>匯出 PDF
+									</button>
+									<ul class="dropdown-menu dropdown-menu-end shadow">
+										<li><h6 class="dropdown-header">選擇匯出格式（直接下載檔案）</h6></li>
+										<li>
+											<a class="dropdown-item py-2" href="#" @click.prevent="generatePDF('full')">
+												<div class="fw-bold">📄 匯出完整成果報告</div>
+												<small class="text-muted">包含文章排版文字與重複字詳細統計表</small>
+											</a>
+										</li>
+										<li>
+											<a class="dropdown-item py-2" href="#" @click.prevent="generatePDF('text-only')">
+												<div class="fw-bold">✍️ 僅匯出排版文字 (書法作品)</div>
+												<small class="text-muted">獨立輸出排版好的書法字體文章頁面</small>
+											</a>
+										</li>
+										<li>
+											<a class="dropdown-item py-2" href="#" @click.prevent="generatePDF('stats-only')" :class="{ disabled: !results.length }">
+												<div class="fw-bold">📊 僅匯出字數統計表</div>
+												<small class="text-muted">重複字數統計數據與長條圖清單</small>
+											</a>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+
+						<!-- 第三列：圈選字體工具列 -->
+						<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top">
+							<div class="d-flex align-items-center flex-wrap gap-1">
+								<span class="small fw-bold text-nowrap" :class="hasSelection ? 'text-primary' : 'text-muted'">
+									<span v-if="hasSelection">
+										✨ 圈選「<span class="text-truncate d-inline-block align-bottom" style="max-width: 140px;">{{ selectedText }}</span>」({{ selectedText.length }}字) ➔ 套用：
+									</span>
+									<span v-else>
+										💡 圈選字體：
+									</span>
+								</span>
+
+								<!-- 字體套用按鈕群 -->
+								<div class="btn-group btn-group-sm flex-wrap">
+									<button
+										v-for="font in fonts"
+										:key="font.id"
+										type="button"
+										class="btn font-btn-preview"
+										:class="hasSelection ? 'btn-outline-dark' : 'btn-outline-secondary opacity-75'"
+										:title="font.desc"
+										@mousedown.prevent
+										@click="applyFont(font)"
+									>
+										<span :style="{ fontFamily: font.fontFamily }">{{ font.shortName }}</span>
+									</button>
+									<button
+										type="button"
+										class="btn btn-outline-danger btn-sm"
+										title="清除圈選範圍之個別字體，還原為全篇字體"
+										@mousedown.prevent
+										@click="clearSelectionFont"
+									>
+										✕ 還原全篇字體
+									</button>
+								</div>
+							</div>
+
+							<!-- 全部清除格式 -->
+							<button
+								type="button"
+								class="btn btn-sm text-secondary p-0"
+								style="font-size: .78rem;"
+								@click="resetAllFonts"
+								title="將整篇所有文字重設為純文字（去除個別自訂樣式）"
+							>
+								重設全篇為預設
+							</button>
+						</div>
+					</div>
+
+					<!-- 編輯區容器：點擊任意位置皆可聚焦 -->
+					<div class="editor-wrapper" @click="focusEditor">
+						<div
+							id="inputArea"
+							ref="editor"
+							contenteditable="true"
+							spellcheck="false"
+							:class="isVertical ? 'writing-vertical' : 'writing-horizontal'"
+							:style="{
+								fontFamily: currentBaseFont.fontFamily,
+								fontSize: fontSize + 'px',
+								lineHeight: lineHeight
+							}"
+							@input="handleInput"
+							@paste="handlePaste"
+							@mouseup="handleSelectionChange"
+							@keyup="handleSelectionChange"
+							@focus="handleSelectionChange"
+							@click.stop
+						></div>
+
+						<!-- 空白提示占位 -->
+						<div
+							class="editor-placeholder"
+							:class="isVertical ? 'is-vertical' : 'is-horizontal'"
+							v-if="!inputData || !inputData.trim()"
+							@click.stop="focusEditor"
+						>
+							<div class="fw-bold mb-1 text-secondary">
+								請在此貼上或輸入欲統計與套用字體的內容… {{ isVertical ? '（直式右至左）' : '' }}
+							</div>
+							<div class="small text-muted opacity-75">
+								✦ 預設採用「<strong>直式書寫（右至左）</strong>」，前後行距緊密<br>
+								✦ 全篇以「<strong>迷你繁王行</strong>」為主，遇到缺字自動套用「<strong>衡山毛筆</strong>」<br>
+								✦ 隨時可按 <strong>Ctrl + V</strong> 或點擊上方「<strong>📋 貼上</strong>」按鈕貼上內容！<br>
+								✦ 可用滑鼠圈選任意文字更換不同書法字體，並支援匯出 PDF。
+							</div>
+						</div>
+
+						<!-- 浮動圈選快捷選單 -->
+						<div
+							class="floating-font-bar"
+							:class="{ 'flip-below': floatingFlipBelow }"
+							v-show="floatingVisible && hasSelection"
+							:style="{ top: floatingTop + 'px', left: floatingLeft + 'px' }"
+							@mousedown.prevent
+						>
+							<span class="small text-white-50 me-1" style="font-size: .75rem;">套用字體：</span>
+							<div class="btn-group btn-group-sm">
+								<button
+									v-for="font in fonts"
+									:key="font.id"
+									type="button"
+									class="btn btn-sm btn-dark text-white border-secondary px-2 py-0"
+									:title="font.name"
+									@mousedown.prevent
+									@click="applyFont(font)"
+								>
+									<span :style="{ fontFamily: font.fontFamily, fontSize: '1rem' }">{{ font.shortName }}</span>
+								</button>
+								<button
+									type="button"
+									class="btn btn-sm btn-outline-warning px-2 py-0"
+									title="還原為全篇預設字體"
+									@mousedown.prevent
+									@click="clearSelectionFont"
+								>
+									✕ 還原
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 字數統計小卡 -->
 				<div class="row g-2 mt-3">
 					<div class="col-4">
 						<div class="stat-card">
 							<div class="num text-primary">{{ totalChars }}</div>
-							<div class="lbl">總字數</div>
+							<div class="lbl">總字數 (中文)</div>
 						</div>
 					</div>
 					<div class="col-4">
@@ -205,13 +665,18 @@
 				</div>
 			</div>
 
+			<!-- 右側：重複字數列表 -->
 			<div class="col-12 col-lg-5">
 				<div class="result-panel">
 					<div class="result-head">
-						<span>統計結果 <span class="badge text-dark">{{ results.length }} 個重複字</span></span>
-						<button type="button" class="btn btn-sm fw-bold"
+						<span>統計結果 <span class="badge text-dark bg-light">{{ results.length }} 個重複字</span></span>
+						<button
+							type="button"
+							class="btn btn-sm fw-bold"
 							:class="copyState === 'ok' ? 'btn-success' : (copyState === 'fail' ? 'btn-warning' : 'btn-outline-light')"
-							:disabled="!results.length" @click="copyResults">
+							:disabled="!results.length"
+							@click="copyResults"
+						>
 							{{ copyLabel }}
 						</button>
 					</div>
@@ -229,7 +694,11 @@
 							<tbody>
 								<tr v-for="(item, index) in results" :key="item.word">
 									<td class="rank">{{ index + 1 }}</td>
-									<td><div class="word-box">{{ item.word }}</div></td>
+									<td>
+										<div class="word-box" :style="{ fontFamily: currentBaseFont.fontFamily }">
+											{{ item.word }}
+										</div>
+									</td>
 									<td class="text-end count-cell">{{ item.count }}</td>
 									<td>
 										<div class="bar-wrap">
@@ -246,41 +715,486 @@
 
 					<div class="empty-tip" v-else>
 						尚未有重複的字<br />
-						<small>輸入內容後即時顯示結果</small>
+						<small>輸入或貼上內容後即時顯示統計與字體效果</small>
 					</div>
 				</div>
 			</div>
 		</div>
+
+		<!-- 浮動提示 Toast -->
+		<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
+			<div
+				class="toast align-items-center text-white border-0 shadow"
+				:class="toastBgClass"
+				role="alert"
+				aria-live="assertive"
+				aria-atomic="true"
+				:class="{ show: toastVisible }"
+				v-if="toastVisible"
+			>
+				<div class="d-flex">
+					<div class="toast-body">
+						{{ toastMessage }}
+					</div>
+					<button type="button" class="btn-close btn-close-white me-2 m-auto" @click="toastVisible = false"></button>
+				</div>
+			</div>
+		</div>
+
+		<!-- 匯出中 Loading 遮罩 -->
+		<div class="export-overlay" v-if="isExporting">
+			<div class="spinner-border text-light mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+			<h5 class="fw-bold mb-1">正在產生 PDF 檔案…</h5>
+			<span class="small text-white-50">正在高解析度渲染直式書法字體與統計內容，檔案將自動下載</span>
+		</div>
 	</div>
 
+	<!-- 腳本引入：Bootstrap 5, Vue 3, html2canvas, jsPDF -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 
 	<script type="text/javascript">
 		const { createApp } = Vue;
 
+		const FONT_OPTIONS = [
+			{
+				id: 'mini-kouzan',
+				name: '迷你繁王行（缺字回退衡山）[預設]',
+				shortName: '迷你+衡山',
+				badge: '預設',
+				fontFamily: "'迷你繁王行', '衡山毛筆草書', '橫山毛筆', 'Noto Sans TC', sans-serif",
+				desc: '以迷你繁王行為主，缺少之字元自動回退至衡山毛筆草書'
+			},
+			{
+				id: 'mini-wang',
+				name: '迷你繁王行 (純)',
+				shortName: '迷你繁王行',
+				badge: '行書',
+				fontFamily: "'迷你繁王行', 'Noto Sans TC', sans-serif",
+				desc: '經典王羲之行書筆韻'
+			},
+			{
+				id: 'kouzan',
+				name: '衡山毛筆草書 (橫山毛筆)',
+				shortName: '衡山毛筆',
+				badge: '草書',
+				fontFamily: "'衡山毛筆草書', '橫山毛筆', 'Noto Sans TC', sans-serif",
+				desc: '大氣磅礡之毛筆草書'
+			},
+			{
+				id: 'yuwei',
+				name: '禹衛書法行書',
+				shortName: '禹衛行書',
+				badge: '行書',
+				fontFamily: "'禹衛書法行書', 'Noto Sans TC', sans-serif",
+				desc: '硬筆行書風格，清雅流暢'
+			},
+			{
+				id: 'mona',
+				name: '蒙納繁行書',
+				shortName: '蒙納行書',
+				badge: '行書',
+				fontFamily: "'蒙納繁行書', 'Noto Sans TC', sans-serif",
+				desc: '經典書法行書字體'
+			},
+			{
+				id: 'system',
+				name: '系統預設字體 (思源黑體)',
+				shortName: '系統字體',
+				badge: '黑體',
+				fontFamily: "'Noto Sans TC', sans-serif",
+				desc: '標準清晰思源黑體'
+			}
+		];
+
 		createApp({
 			data() {
 				return {
+					fonts: FONT_OPTIONS,
+					baseFontId: 'mini-kouzan',
+					fontSize: 26,
+					lineHeight: 1.2, // 緊密行距預設值
+					isVertical: true, // 預設直式書寫（右至左）
+
 					inputData: "",
 					results: [],
 					totalChars: 0,
 					uniqueChars: 0,
 					copyState: "",
-					copyTimer: null
+					copyTimer: null,
+
+					// 圈選狀態
+					hasSelection: false,
+					selectedText: "",
+					savedRange: null,
+
+					// 浮動工具列
+					floatingVisible: false,
+					floatingTop: 0,
+					floatingLeft: 0,
+					floatingFlipBelow: false,
+
+					// 匯出 PDF 狀態
+					isExporting: false,
+
+					// Toast
+					toastVisible: false,
+					toastMessage: "",
+					toastType: "info",
+					toastTimer: null
 				};
 			},
 			computed: {
+				currentBaseFont() {
+					return this.fonts.find(f => f.id === this.baseFontId) || this.fonts[0];
+				},
 				copyLabel() {
 					if (this.copyState === "ok") return "已複製";
 					if (this.copyState === "fail") return "複製失敗";
 					return "複製結果";
+				},
+				toastBgClass() {
+					switch (this.toastType) {
+						case 'success': return 'bg-success';
+						case 'warning': return 'bg-warning text-dark';
+						case 'danger': return 'bg-danger';
+						default: return 'bg-dark';
+					}
 				}
 			},
+			mounted() {
+				document.addEventListener('selectionchange', this.handleSelectionChange);
+				document.addEventListener('mousedown', (e) => {
+					if (!this.$refs.editor) return;
+					if (!e.target.closest('.floating-font-bar') && !e.target.closest('#inputArea') && !e.target.closest('.editor-toolbar')) {
+						this.floatingVisible = false;
+					}
+				});
+			},
+			beforeUnmount() {
+				document.removeEventListener('selectionchange', this.handleSelectionChange);
+			},
 			methods: {
+				focusEditor() {
+					const editor = this.$refs.editor;
+					if (!editor) return;
+					editor.focus();
+
+					// 確保游標在編輯區內部
+					const sel = window.getSelection();
+					if (!sel || sel.rangeCount === 0 || !editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+						const range = document.createRange();
+						range.selectNodeContents(editor);
+						range.collapse(false);
+						sel.removeAllRanges();
+						sel.addRange(range);
+					}
+				},
+				changeFontSize(delta) {
+					this.fontSize = Math.min(50, Math.max(16, this.fontSize + delta));
+				},
+				showToast(message, type = 'info') {
+					this.toastMessage = message;
+					this.toastType = type;
+					this.toastVisible = true;
+					clearTimeout(this.toastTimer);
+					this.toastTimer = setTimeout(() => {
+						this.toastVisible = false;
+					}, 2400);
+				},
+				handleInput() {
+					const editor = this.$refs.editor;
+					const text = editor ? editor.innerText : "";
+					this.inputData = text;
+					this.wordFrequency();
+				},
+
+				/* ================= 貼上處理：穩定支援 Ctrl+V、右鍵貼上與各平台換行 ================= */
+				handlePaste(e) {
+					e.preventDefault();
+					let text = "";
+					if (e.clipboardData) {
+						text = e.clipboardData.getData('text/plain');
+					} else if (window.clipboardData) {
+						text = window.clipboardData.getData('Text');
+					}
+
+					if (!text) return;
+					this.insertPlainText(text);
+				},
+
+				async pasteFromClipboard() {
+					try {
+						if (navigator.clipboard && navigator.clipboard.readText) {
+							const text = await navigator.clipboard.readText();
+							if (text) {
+								this.insertPlainText(text);
+								this.showToast('已成功貼上剪貼簿文字！', 'success');
+								return;
+							}
+						}
+					} catch (err) {
+						console.warn('Clipboard readText blocked:', err);
+					}
+
+					// 若瀏覽器權限限制讀取剪貼簿，引導使用者按 Ctrl+V
+					this.focusEditor();
+					this.showToast('請直接在編輯區按下 Ctrl + V 貼上內容', 'info');
+				},
+
+				insertPlainText(text) {
+					const editor = this.$refs.editor;
+					if (!editor) return;
+
+					editor.focus();
+
+					// 取得或建立有效選取範圍
+					let sel = window.getSelection();
+					if (!sel || sel.rangeCount === 0 || !editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+						const newRange = document.createRange();
+						newRange.selectNodeContents(editor);
+						newRange.collapse(false);
+						sel.removeAllRanges();
+						sel.addRange(newRange);
+					}
+
+					const range = sel.getRangeAt(0);
+					range.deleteContents();
+
+					// 正規化 Windows \r\n 與 Unix \n 換行符號
+					const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+					const lines = normalizedText.split('\n');
+
+					const fragment = document.createDocumentFragment();
+					lines.forEach((line, index) => {
+						if (index > 0) {
+							fragment.appendChild(document.createElement('br'));
+						}
+						if (line.length > 0) {
+							fragment.appendChild(document.createTextNode(line));
+						}
+					});
+
+					const lastNode = fragment.lastChild;
+					range.insertNode(fragment);
+
+					// 將游標定位至貼上內容後方
+					if (lastNode) {
+						const caretRange = document.createRange();
+						caretRange.setStartAfter(lastNode);
+						caretRange.collapse(true);
+						sel.removeAllRanges();
+						sel.addRange(caretRange);
+						this.savedRange = caretRange.cloneRange();
+					}
+
+					this.handleInput();
+				},
+
+				handleSelectionChange() {
+					const sel = window.getSelection();
+					const editor = this.$refs.editor;
+					if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !editor) {
+						this.hasSelection = false;
+						this.selectedText = "";
+						this.floatingVisible = false;
+						return;
+					}
+
+					const range = sel.getRangeAt(0);
+					if (!editor.contains(range.commonAncestorContainer)) {
+						this.hasSelection = false;
+						this.selectedText = "";
+						this.floatingVisible = false;
+						return;
+					}
+
+					const text = sel.toString();
+					if (text && text.trim().length > 0) {
+						this.savedRange = range.cloneRange();
+						this.hasSelection = true;
+						this.selectedText = text.trim();
+						this.updateFloatingPosition(range);
+					} else {
+						this.hasSelection = false;
+						this.selectedText = "";
+						this.floatingVisible = false;
+					}
+				},
+				updateFloatingPosition(range) {
+					const rect = range.getBoundingClientRect();
+					if (!rect || (rect.width === 0 && rect.height === 0)) {
+						this.floatingVisible = false;
+						return;
+					}
+
+					let top = rect.top + window.scrollY - 46;
+					let left = rect.left + window.scrollX + (rect.width / 2);
+					let flip = false;
+
+					if (rect.top < 65) {
+						top = rect.bottom + window.scrollY + 8;
+						flip = true;
+					}
+
+					this.floatingTop = Math.max(10, top);
+					this.floatingLeft = left;
+					this.floatingFlipBelow = flip;
+					this.floatingVisible = true;
+				},
+				applyFont(fontItem) {
+					const sel = window.getSelection();
+					const editor = this.$refs.editor;
+					let range = null;
+
+					if (sel && sel.rangeCount > 0 && !sel.isCollapsed && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+						range = sel.getRangeAt(0);
+					} else if (this.savedRange) {
+						sel.removeAllRanges();
+						sel.addRange(this.savedRange);
+						range = this.savedRange;
+					}
+
+					if (!range || range.collapsed) {
+						this.showToast('請先圈選文字以更換字體！', 'warning');
+						return;
+					}
+
+					const span = document.createElement('span');
+					span.className = 'custom-font-span';
+					span.dataset.fontId = fontItem.id;
+					span.style.fontFamily = fontItem.fontFamily;
+
+					const fragment = range.extractContents();
+					const nested = fragment.querySelectorAll ? fragment.querySelectorAll('.custom-font-span, [style*="font-family"]') : [];
+					nested.forEach(node => {
+						node.style.fontFamily = '';
+						node.classList.remove('custom-font-span');
+					});
+
+					span.appendChild(fragment);
+					range.insertNode(span);
+
+					const newRange = document.createRange();
+					newRange.selectNodeContents(span);
+					sel.removeAllRanges();
+					sel.addRange(newRange);
+					this.savedRange = newRange.cloneRange();
+					this.hasSelection = true;
+					this.selectedText = sel.toString();
+
+					this.handleInput();
+					this.showToast(`已套用「${fontItem.shortName}」`, 'success');
+				},
+				clearSelectionFont() {
+					const sel = window.getSelection();
+					const editor = this.$refs.editor;
+					let range = null;
+
+					if (sel && sel.rangeCount > 0 && !sel.isCollapsed && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+						range = sel.getRangeAt(0);
+					} else if (this.savedRange) {
+						sel.removeAllRanges();
+						sel.addRange(this.savedRange);
+						range = this.savedRange;
+					}
+
+					if (!range || range.collapsed) {
+						this.showToast('請先圈選文字以還原字體！', 'warning');
+						return;
+					}
+
+					const fragment = range.extractContents();
+					const temp = document.createElement('div');
+					temp.appendChild(fragment);
+
+					const styledNodes = temp.querySelectorAll('.custom-font-span, [style*="font-family"]');
+					styledNodes.forEach(node => {
+						node.style.fontFamily = '';
+						node.classList.remove('custom-font-span');
+					});
+
+					const emptySpans = temp.querySelectorAll('span:not([style]):not([class])');
+					emptySpans.forEach(s => {
+						while (s.firstChild) s.parentNode.insertBefore(s.firstChild, s);
+						s.remove();
+					});
+
+					const cleanFrag = document.createDocumentFragment();
+					while (temp.firstChild) {
+						cleanFrag.appendChild(temp.firstChild);
+					}
+
+					range.insertNode(cleanFrag);
+					this.handleInput();
+					this.floatingVisible = false;
+					this.showToast('已還原選取文字為全篇字體', 'info');
+				},
+				resetAllFonts() {
+					const editor = this.$refs.editor;
+					if (!editor) return;
+					const plain = editor.innerText;
+					if (!plain.trim()) return;
+					editor.textContent = plain;
+					this.handleInput();
+					this.hasSelection = false;
+					this.floatingVisible = false;
+					this.showToast('已將全篇文字還原為預設字體', 'info');
+				},
+				clearEditor() {
+					const editor = this.$refs.editor;
+					if (editor) {
+						editor.innerHTML = '';
+						this.handleInput();
+						this.hasSelection = false;
+						this.floatingVisible = false;
+						this.showToast('已清空編輯區內容', 'info');
+					}
+				},
+				async copyPlainText() {
+					const editor = this.$refs.editor;
+					const text = editor ? editor.innerText : "";
+					if (!text.trim()) {
+						this.showToast('編輯區目前無內容可複製', 'warning');
+						return;
+					}
+					let ok = false;
+					try {
+						if (navigator.clipboard && window.isSecureContext) {
+							await navigator.clipboard.writeText(text);
+							ok = true;
+						}
+					} catch (e) {
+						ok = false;
+					}
+					if (!ok) {
+						const ta = document.createElement('textarea');
+						ta.value = text;
+						ta.style.position = 'fixed';
+						ta.style.top = '-1000px';
+						document.body.appendChild(ta);
+						ta.select();
+						try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+						document.body.removeChild(ta);
+					}
+					this.showToast(ok ? '已複製純文字到剪貼簿！' : '複製失敗', ok ? 'success' : 'warning');
+				},
+				loadSampleText() {
+					const sample = `永和九年，歲在癸丑，暮春之初，會於會稽山陰之蘭亭，脩禊事也。群賢畢至，少長咸集。此地有崇山峻嶺，茂林修竹，又有清流激湍，映帶左右，引以為流觴曲水，列坐其次。雖無絲竹管弦之盛，一觴一詠，亦足以暢敘幽情。
+
+是日也，天朗氣清，惠風和暢。仰觀宇宙之大，俯察品類之盛，所以遊目騁懷，足以極視聽之娛，信可樂也。`;
+					const editor = this.$refs.editor;
+					if (editor) {
+						editor.innerText = sample;
+						this.handleInput();
+						this.showToast('已載入《蘭亭集序》範例！可檢視直式右至左排版效果。', 'success');
+					}
+				},
 				wordFrequency() {
-					const pattern = /[\u4e00-\u9fa5]/g;
-					const matchedWords = this.inputData.match(pattern) || [];
+					const pattern = /[\u4e00-\u9fff\u3400-\u4dbf]/g;
+					const matchedWords = (this.inputData || "").match(pattern) || [];
 
 					const counts = {};
 					matchedWords.forEach((word) => {
@@ -339,6 +1253,8 @@
 					this.copyTimer = setTimeout(() => {
 						this.copyState = "";
 					}, 2000);
+
+					this.showToast(ok ? "已複製統計結果表格！" : "複製統計結果失敗", ok ? "success" : "warning");
 				},
 				barWidth(count) {
 					if (!this.results.length) return "0%";
@@ -348,6 +1264,261 @@
 				pct(count) {
 					if (!this.totalChars) return "0%";
 					return (count / this.totalChars * 100).toFixed(1) + "%";
+				},
+
+				/* ================= 匯出 PDF 核心功能（直接下載檔案，非印表機列印） ================= */
+				async generatePDF(mode = 'full') {
+					if (this.isExporting) return;
+
+					const editor = this.$refs.editor;
+					const editorHtml = editor ? editor.innerHTML.trim() : "";
+					if (!editorHtml && mode !== 'stats-only') {
+						this.showToast("編輯區目前尚無文字內容可匯出！", "warning");
+						return;
+					}
+
+					if (mode === 'stats-only' && !this.results.length) {
+						this.showToast("目前尚無重複字統計結果可匯出！", "warning");
+						return;
+					}
+
+					if (typeof html2canvas === 'undefined' || !window.jspdf) {
+						this.showToast("PDF 模組載入中，請稍候重試", "warning");
+						return;
+					}
+
+					this.isExporting = true;
+
+					try {
+						if (document.fonts && document.fonts.ready) {
+							await document.fonts.ready;
+						}
+
+						const now = new Date();
+						const dateStr = now.getFullYear() + '-' +
+							String(now.getMonth() + 1).padStart(2, '0') + '-' +
+							String(now.getDate()).padStart(2, '0') + ' ' +
+							String(now.getHours()).padStart(2, '0') + ':' +
+							String(now.getMinutes()).padStart(2, '0');
+
+						const isVert = this.isVertical;
+						const useLandscape = (mode === 'text-only' && isVert);
+
+						// 建立離屏 A4 比例容器（極窄邊界：去掉大標題、頁碼，僅留微幅邊距）
+						const container = document.createElement('div');
+						container.style.position = 'fixed';
+						container.style.left = '-9999px';
+						container.style.top = '0';
+						container.style.width = useLandscape ? '1060px' : '780px';
+						container.style.backgroundColor = '#ffffff';
+						container.style.color = '#212529';
+						container.style.padding = '6px 8px';
+						container.style.fontFamily = "'Noto Sans TC', sans-serif";
+						container.style.boxSizing = 'border-box';
+
+						let contentHtml = '';
+
+						const vertTextStyle = isVert ?
+							`writing-mode: vertical-rl; text-orientation: upright; height: ${useLandscape ? '710px' : '480px'}; overflow: hidden;` :
+							`writing-mode: horizontal-tb;`;
+
+						if (mode === 'full') {
+							// 模式一：完整成果報告（精簡排版，無大標題與冗餘抬頭，直入核心內容）
+							contentHtml = `
+								<div style="display: flex; gap: 8px; margin-bottom: 10px;">
+									<div style="flex: 1; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 10px; text-align: center; background: #f8f9fa;">
+										<div style="font-size: 18px; font-weight: bold; color: #0d6efd;">${this.totalChars}</div>
+										<div style="font-size: 11px; color: #6c757d;">總字數 (中文)</div>
+									</div>
+									<div style="flex: 1; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 10px; text-align: center; background: #f8f9fa;">
+										<div style="font-size: 18px; font-weight: bold; color: #198754;">${this.uniqueChars}</div>
+										<div style="font-size: 11px; color: #6c757d;">不重複字數</div>
+									</div>
+									<div style="flex: 1; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 10px; text-align: center; background: #f8f9fa;">
+										<div style="font-size: 18px; font-weight: bold; color: #dc3545;">${this.results.length}</div>
+										<div style="font-size: 11px; color: #6c757d;">重複字數</div>
+									</div>
+								</div>
+
+								<div style="margin-bottom: 12px; background: #ffffff; border: 1px solid #e9ecef; border-radius: 6px; padding: 12px; font-size: ${this.fontSize}px; line-height: ${this.lineHeight}; letter-spacing: 0.05em; font-family: ${this.currentBaseFont.fontFamily}; white-space: pre-wrap; word-break: break-word; ${vertTextStyle}">
+									${editorHtml}
+								</div>
+
+								${this.results.length ? `
+								<div style="margin-top: 8px;">
+									<table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+										<thead>
+											<tr style="background: #f1f3f5; border-bottom: 1px solid #dee2e6; color: #495057;">
+												<th style="padding: 5px; text-align: center; width: 40px;">#</th>
+												<th style="padding: 5px; text-align: center; width: 65px;">字元</th>
+												<th style="padding: 5px; text-align: right; width: 65px;">出現次數</th>
+												<th style="padding: 5px; text-align: left; padding-left: 15px;">佔比長條圖</th>
+												<th style="padding: 5px; text-align: right; width: 60px;">比例</th>
+											</tr>
+										</thead>
+										<tbody>
+											${this.results.map((item, index) => `
+												<tr style="border-bottom: 1px solid #f1f3f5;">
+													<td style="padding: 4px; text-align: center; color: #868e96;">${index + 1}</td>
+													<td style="padding: 4px; text-align: center;">
+														<div style="display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-size: 16px; font-family: ${this.currentBaseFont.fontFamily};">
+															${item.word}
+														</div>
+													</td>
+													<td style="padding: 4px; text-align: right; font-weight: bold; color: #1971c2;">${item.count}</td>
+													<td style="padding: 4px; padding-left: 15px;">
+														<div style="background: #f1f3f5; border-radius: 3px; height: 8px; width: 100%; overflow: hidden;">
+															<div style="background: #1c7ed6; height: 100%; width: ${this.barWidth(item.count)};"></div>
+														</div>
+													</td>
+													<td style="padding: 4px; text-align: right; color: #6c757d;">${this.pct(item.count)}</td>
+												</tr>
+											`).join('')}
+										</tbody>
+									</table>
+								</div>
+								` : ''}
+							`;
+						} else if (mode === 'text-only') {
+							// 模式二：純書法字體作品排版（完全去除抬頭標題、外框、頁尾，滿版純淨書法）
+							contentHtml = `
+								<div style="background: #ffffff; padding: 4px; font-size: ${this.fontSize + 2}px; line-height: ${this.lineHeight}; letter-spacing: 0.05em; font-family: ${this.currentBaseFont.fontFamily}; white-space: pre-wrap; word-break: break-word; ${vertTextStyle}">
+									${editorHtml}
+								</div>
+							`;
+						} else if (mode === 'stats-only') {
+							// 模式三：僅字數統計分析（去除大標題，直接呈現統計數據與表格）
+							contentHtml = `
+								<div style="display: flex; gap: 8px; margin-bottom: 10px;">
+									<div style="flex: 1; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 10px; text-align: center; background: #f8f9fa;">
+										<div style="font-size: 18px; font-weight: bold; color: #0d6efd;">${this.totalChars}</div>
+										<div style="font-size: 11px; color: #6c757d;">總字數 (中文)</div>
+									</div>
+									<div style="flex: 1; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 10px; text-align: center; background: #f8f9fa;">
+										<div style="font-size: 18px; font-weight: bold; color: #198754;">${this.uniqueChars}</div>
+										<div style="font-size: 11px; color: #6c757d;">不重複字數</div>
+									</div>
+									<div style="flex: 1; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 10px; text-align: center; background: #f8f9fa;">
+										<div style="font-size: 18px; font-weight: bold; color: #dc3545;">${this.results.length}</div>
+										<div style="font-size: 11px; color: #6c757d;">重複字數</div>
+									</div>
+								</div>
+
+								<table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+									<thead>
+										<tr style="background: #f1f3f5; border-bottom: 1px solid #dee2e6; color: #495057;">
+											<th style="padding: 5px; text-align: center; width: 40px;">#</th>
+											<th style="padding: 5px; text-align: center; width: 65px;">字元</th>
+											<th style="padding: 5px; text-align: right; width: 65px;">出現次數</th>
+											<th style="padding: 5px; text-align: left; padding-left: 15px;">佔比長條圖</th>
+											<th style="padding: 5px; text-align: right; width: 60px;">比例</th>
+										</tr>
+									</thead>
+									<tbody>
+										${this.results.map((item, index) => `
+											<tr style="border-bottom: 1px solid #f1f3f5;">
+												<td style="padding: 4px; text-align: center; color: #868e96;">${index + 1}</td>
+												<td style="padding: 4px; text-align: center;">
+													<div style="display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-size: 16px; font-family: ${this.currentBaseFont.fontFamily};">
+														${item.word}
+													</div>
+												</td>
+												<td style="padding: 4px; text-align: right; font-weight: bold; color: #1971c2;">${item.count}</td>
+												<td style="padding: 4px; padding-left: 15px;">
+													<div style="background: #f1f3f5; border-radius: 3px; height: 8px; width: 100%; overflow: hidden;">
+														<div style="background: #1c7ed6; height: 100%; width: ${this.barWidth(item.count)};"></div>
+													</div>
+												</td>
+												<td style="padding: 4px; text-align: right; color: #6c757d;">${this.pct(item.count)}</td>
+											</tr>
+										`).join('')}
+									</tbody>
+								</table>
+							`;
+						}
+
+						container.innerHTML = contentHtml;
+						document.body.appendChild(container);
+
+						// 使用 html2canvas 高解析度繪製
+						const canvas = await html2canvas(container, {
+							scale: 2.2,
+							useCORS: true,
+							allowTaint: true,
+							backgroundColor: '#ffffff',
+							logging: false
+						});
+
+						document.body.removeChild(container);
+
+						// 呼叫 jsPDF 生成並分頁 A4 PDF 文件
+						const { jsPDF } = window.jspdf;
+						const pdf = new jsPDF({
+							orientation: useLandscape ? 'l' : 'p',
+							unit: 'mm',
+							format: 'a4'
+						});
+
+						const pageWidth = pdf.internal.pageSize.getWidth();
+						const pageHeight = pdf.internal.pageSize.getHeight();
+						const margin = 4; // 極小邊界：只留 4mm 邊緣緩衝
+						const printableWidth = pageWidth - margin * 2;
+						const printableHeight = pageHeight - margin * 2;
+
+						// 計算每一 A4 頁對應的 Canvas 像素高度
+						const pageCanvasHeight = Math.floor(canvas.width * (printableHeight / printableWidth));
+						let renderedHeight = 0;
+						let pageIndex = 0;
+
+						while (renderedHeight < canvas.height) {
+							if (pageIndex > 0) {
+								pdf.addPage();
+							}
+
+							const sliceHeight = Math.min(pageCanvasHeight, canvas.height - renderedHeight);
+							const pageCanvas = document.createElement('canvas');
+							pageCanvas.width = canvas.width;
+							pageCanvas.height = sliceHeight;
+							const ctx = pageCanvas.getContext('2d');
+
+							ctx.fillStyle = '#ffffff';
+							ctx.fillRect(0, 0, canvas.width, sliceHeight);
+
+							ctx.drawImage(
+								canvas,
+								0, renderedHeight, canvas.width, sliceHeight,
+								0, 0, canvas.width, sliceHeight
+							);
+
+							const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.96);
+							const drawHeight = (sliceHeight * printableWidth) / canvas.width;
+
+							pdf.addImage(pageImgData, 'JPEG', margin, margin, printableWidth, drawHeight);
+
+							renderedHeight += sliceHeight;
+							pageIndex++;
+						}
+
+						// 產生檔名
+						const timeSlug = now.getFullYear() +
+							String(now.getMonth() + 1).padStart(2, '0') +
+							String(now.getDate()).padStart(2, '0') + '_' +
+							String(now.getHours()).padStart(2, '0') +
+							String(now.getMinutes()).padStart(2, '0');
+
+						let fileName = `字數統計與直式書法排版_${timeSlug}.pdf`;
+						if (mode === 'text-only') fileName = `直式書法作品_${timeSlug}.pdf`;
+						if (mode === 'stats-only') fileName = `字數統計分析表_${timeSlug}.pdf`;
+
+						// 直接下載 PDF 檔案
+						pdf.save(fileName);
+						this.showToast(`已成功匯出並下載：${fileName}`, 'success');
+					} catch (err) {
+						console.error('PDF export error:', err);
+						this.showToast('匯出 PDF 時發生錯誤，請稍後再試', 'danger');
+					} finally {
+						this.isExporting = false;
+					}
 				}
 			}
 		}).mount('#app');
